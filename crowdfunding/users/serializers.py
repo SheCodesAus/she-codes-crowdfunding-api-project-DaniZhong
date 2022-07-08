@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import CustomUser
+from projects.serializers import PledgeSerializer
 
 class CustomUserSerializer(serializers.Serializer):
     id = serializers.ReadOnlyField()
@@ -10,3 +11,13 @@ class CustomUserSerializer(serializers.Serializer):
         return CustomUser.objects.create(**validated_data)
     
     
+
+class CustomUserDetailSerializer(CustomUserSerializer):
+    supporter_pledges = PledgeSerializer(many=True, read_only=True)
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get('username', instance.username)
+        instance.email = validated_data.get('email', instance.email)
+        instance.password = validated_data.get('password', instance.password)
+        instance.save()
+        return instance
