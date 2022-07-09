@@ -21,7 +21,7 @@ class PledgeSerializer(serializers.Serializer):
         instance.save()
         return instance
 
-class ProjectSerializer(serializers.Serializer):
+class ProjectSerializer(serializers.Serializer):    
     id = serializers.ReadOnlyField()
     title = serializers.CharField(max_length=200)
     description = serializers.CharField(max_length=None)
