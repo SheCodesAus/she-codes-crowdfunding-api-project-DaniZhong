@@ -6,12 +6,15 @@ from rest_framework import status, permissions
 from .models import Project, Pledge
 from .serializers import ProjectSerializer, PledgeSerializer, ProjectDetailSerializer
 from django.http import Http404
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly, IsSupporterOrReadOnly
 
 # Create your views here.
 
 class PledgeList(APIView):
-    
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsSupporterOrReadOnly
+    ]
     def get(self, request):
         pledges = Pledge.objects.all()
         serializer = PledgeSerializer(pledges, many=True)
@@ -30,10 +33,15 @@ class PledgeList(APIView):
         )
 
 class PledgeDetail(APIView):
-    
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsSupporterOrReadOnly
+    ]
     def get_object(self, pk):
         try:
-            return Pledge.objects.get(pk=pk)
+            pledge = Pledge.objects.get(pk=pk)
+            self.check_object_permissions(self.request, pledge)
+            return pledge
         except Pledge.DoesNotExist:
             raise Http404  
     
@@ -46,8 +54,25 @@ class PledgeDetail(APIView):
         pledge = self.get_object(pk)
         pledge.delete()
         return Response({'message': 'Pledge was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
-        
 
+    def put(self, request, pk):
+        pledge = self.get_object(pk)
+        data = request.data
+        serializer = PledgeSerializer(
+            instance = pledge,
+            data = data,
+            partial = True
+        )
+        if serializer.is_valid():
+            serializer.save() 
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 class ProjectList(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     def get(self, request):

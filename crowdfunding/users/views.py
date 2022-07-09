@@ -7,7 +7,7 @@ from rest_framework import status, permissions
 from django.contrib.auth.hashers import make_password
 from .models import CustomUser
 from .serializers import CustomUserSerializer, CustomUserDetailSerializer
-from .permissions import IsUserOrReadOnly
+from .permissions import IsUser
 
 # Create your views here.
 class CustomUserList(APIView):
@@ -22,16 +22,12 @@ class CustomUserList(APIView):
         if serializer.is_valid():
             password = make_password(self.request.data['password'])
             serializer.save(password=password)
-            # serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors)
 
 # users/<pk>
 class CustomUserDetail(APIView):
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
-        IsUserOrReadOnly
-        ]
+    permission_classes = [IsUser]
 
     def get_object(self, pk):
         try:

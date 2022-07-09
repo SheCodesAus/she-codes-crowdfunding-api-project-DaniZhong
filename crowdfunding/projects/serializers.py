@@ -11,8 +11,15 @@ class PledgeSerializer(serializers.Serializer):
     
     def create(self, validated_data):
         return Pledge.objects.create(**validated_data)
-        
 
+    def update(self, instance, validated_data):
+        instance.amount= validated_data.get("amount", instance.amount) 
+        instance.comment= validated_data.get("comment", instance.comment) 
+        instance.anonymous= validated_data.get("anonymous", instance.anonymous) 
+        instance.supporter= validated_data.get("supporter", instance.supporter) 
+        instance.project_id= validated_data.get("project_id", instance.project_id) 
+        instance.save()
+        return instance
 
 class ProjectSerializer(serializers.Serializer):
     id = serializers.ReadOnlyField()
